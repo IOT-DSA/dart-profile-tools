@@ -21,3 +21,4 @@ doc/
 /storage/
 /tmp
 /profile.json
+*.ppk

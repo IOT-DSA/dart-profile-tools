@@ -8,7 +8,7 @@ import "package:msgpack/msgpack.dart";
 
 main(List<String> args) async {
   if (args.length != 2) {
-    print("Usage: heap_snapshot <observatory_url> <isolate_id>");
+    print("Usage: gen_heap_snapshot <observatory_url> <isolate_id>");
     exit(1);
     return;
   }
