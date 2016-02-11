@@ -1,4 +1,3 @@
-import "dart:async";
 import "dart:io";
 
 import "package:observe/observe.dart";
@@ -88,31 +87,4 @@ main(List<String> args) async {
 
   print("== Success: Snapshot Generated. ==");
   exit(0);
-}
-
-Future<dynamic> deepCopy(input) async {
-  if (input is Map) {
-    var out = {};
-    for (var key in input.keys) {
-      out[await deepCopy(key)] = await deepCopy(input[key]);
-    }
-    return out;
-  } else if (input is List) {
-    var out = [];
-    for (var e in input) {
-      out.add(await deepCopy(e));
-    }
-    return out;
-  } else if (input is Class) {
-    await input.reload();
-    return {
-      "type": "Class",
-      "name": input.name,
-      "retainedSize": input.retainedSize,
-      "bytesPromotedToOldGen": input.promotedByLastNewGC.bytes,
-      "instancesPromotedToOldGen": input.promotedByLastNewGC.instances
-    };
-  } else {
-    return input;
-  }
 }
