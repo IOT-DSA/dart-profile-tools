@@ -1,27 +1,34 @@
 import "dart:async";
 import "dart:io";
-import "dart:convert";
 
+import "package:observe/observe.dart";
 import "package:vm_service/service_io.dart";
 import "package:vm_service/object_graph.dart";
-import "package:observe/observe.dart";
 
-const bool PRETTY = false;
-const String URL = "ws://127.0.0.1:5938/ws";
-const String ISOLATE = "isolates/754286013";
+import "package:msgpack/msgpack.dart";
 
-main() async {
-  WebSocketVMTarget target = new WebSocketVMTarget(URL);
-  WebSocketVM vm = new WebSocketVM(target);
+main(List<String> args) async {
+  if (args.length != 2) {
+    print("Usage: heap_snapshot <observatory_url> <isolate_id>");
+    exit(1);
+    return;
+  }
+
+  var heapTimestamp = new DateTime.now();
+  var outputFile = new File("heap_snapshot.ppk");
+
+  var target = new WebSocketVMTarget(args[0]);
+  var vm = new WebSocketVM(target);
   vm = await vm.load();
-  Isolate i = await vm.getIsolate(ISOLATE);
+  Isolate i = await vm.getIsolate(args[1]);
 
   await i.getClassRefs();
 
   var output = [];
 
   {
-    HeapSnapshot snapshot = await i.fetchHeapSnapshot().firstWhere((x) => x is HeapSnapshot);
+    HeapSnapshot snapshot = await i.fetchHeapSnapshot()
+      .firstWhere((x) => x is HeapSnapshot);
     List<ObjectVertex> vert = snapshot.graph.vertices.toList();
     vert.sort((a, b) => b.retainedSize.compareTo(a.retainedSize));
     var count = 0;
@@ -64,47 +71,22 @@ main() async {
       count++;
 
       if (count % 1000 == 0) {
-        print("Visited ${count} out of ${vert.length} objects.");
+        print("== Visited ${count} out of ${vert.length} objects. ==");
       }
     }
   }
 
   var out = {
+    "timestamp": heapTimestamp.toString(),
+    "isolateId": i.id,
     "snapshot": output
   };
 
-  var encoded = PRETTY
-    ? const JsonEncoder.withIndent("  ").convert(out)
-    : JSON.encode(out);
-  await new File("profile.json").writeAsString(encoded);
+  var packer = new StatefulPacker();
+  packer.pack(out);
+  await outputFile.writeAsBytes(packer.done());
 
-  print("== Collection Complete ");
-  print("== Collecting Statistics ==");
-  print("${output.length} objects.");
-  List<String> types = output.map((o) => o["type"]).toList();
-  Set<String> typeSet = types.toSet();
-  List<String> uniqueTypeList = typeSet.toList();
-  print("${typeSet.length} unique types.");
-  uniqueTypeList.sort((a, b) {
-    var ac = 0;
-    var bc = 0;
-
-    for (String type in types) {
-      if (type == a) {
-        ac++;
-      } else if (type == b) {
-        bc++;
-      }
-    }
-
-    return bc.compareTo(ac);
-  });
-
-  print("Most Common Types:");
-  for (String type in uniqueTypeList.take(5)) {
-    print("- ${type}");
-  }
-  print("== Snapshot Complete ==");
+  print("== Success: Snapshot Generated. ==");
   exit(0);
 }
 
