@@ -1,0 +1,5 @@
+name: dsa_profile_tools
+description: Tools for Profiling Dart Code
+dependencies:
+  vm_service:
+    git: https://github.com/DirectMyFile/vm_service.git
