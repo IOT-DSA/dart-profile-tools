@@ -4,7 +4,7 @@ import "package:vm_service/service_io.dart";
 
 main(List<String> args) async {
   if (args.length != 2) {
-    print("Usage: gen_heap_snapshot <observatory_url> <isolate_id>");
+    print("Usage: gc <observatory_url> <isolate_id>");
     exit(1);
     return;
   }

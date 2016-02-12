@@ -57,7 +57,19 @@ class HeapSnapshot {
   int get objectCount => objects.length;
 
   bool hasObject(String id) {
-    return objects.any((object) => object.objectId == id);
+    return _getObjectIndex().contains(id);
+  }
+
+  Set<String> _objectIdIndex;
+
+  Set<String> _getObjectIndex() {
+    if (_objectIdIndex != null) {
+      return _objectIdIndex;
+    }
+
+    return _objectIdIndex = objects
+      .map((object) => object.objectId)
+      .toSet();
   }
 
   void runTypeAnalysis() {

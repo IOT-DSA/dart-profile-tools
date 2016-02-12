@@ -35,8 +35,6 @@ main(List<String> args) async {
       "increase": pair.right.retainedSize - pair.left.retainedSize
     };
 
-    print(pair);
-
     output.add(map);
   }
 

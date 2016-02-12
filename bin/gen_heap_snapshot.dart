@@ -44,7 +44,7 @@ main(List<String> args) async {
         "type": c.name,
         "retainedSize": v.retainedSize,
         "shallowSize": v.shallowSize,
-        "objectId": object.id
+        "objectId": v.address
       };
 
       if (object is Instance) {
