@@ -103,12 +103,14 @@ class HeapSnapshot {
 
 class HeapComparison {
   List<HeapComparisonIncrease> increases;
+  List<HeapComparisonNew> newObjects;
 
   static Future<HeapComparison> load(File file) async {
     Map<String, dynamic> input = unpack(await file.readAsBytes());
     var comparison = new HeapComparison();
     comparison.increases = (input["increases"] as List<Map>).map((Map m) {
       var increase = new HeapComparisonIncrease();
+
       increase
         ..objectId = m["objectId"]
         ..oldSize = m["oldSize"]
@@ -117,6 +119,17 @@ class HeapComparison {
         ..type = m["type"];
 
       return increase;
+    }).toList();
+
+    comparison.newObjects = (input["new"] as List<Map>).map((Map m) {
+      var newObject = new HeapComparisonNew();
+
+      newObject
+        ..objectId = m["objectId"]
+        ..retainedSize = m["retainedSize"]
+        ..shallowSize = m["shallowSize"]
+        ..type = m["type"];
+      return newObject;
     }).toList();
 
     comparison.increases.sort((a, b) {
@@ -133,6 +146,13 @@ class HeapComparisonIncrease {
   int oldSize;
   int newSize;
   int increase;
+}
+
+class HeapComparisonNew {
+  String type;
+  String objectId;
+  int retainedSize;
+  int shallowSize;
 }
 
 class HeapComparisonBuilder extends Pair<HeapSnapshot, HeapSnapshot> {
@@ -170,6 +190,12 @@ class HeapComparisonBuilder extends Pair<HeapSnapshot, HeapSnapshot> {
       } else {
         return (pair.right.retainedSize - pair.left.retainedSize) > 0;
       }
+    });
+  }
+
+  Iterable<SnapshotObject> findNewObjects() {
+    return right.objects.where((object) {
+      return !left.hasObject(object.objectId);
     });
   }
 }

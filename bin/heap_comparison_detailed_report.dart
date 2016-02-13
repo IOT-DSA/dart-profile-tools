@@ -29,6 +29,22 @@ main(List<String> args) async {
     out.writeln("**Increase**: ${increase.increase} bytes<br/>");
   }
 
+  count = 0;
+
+  out.writeln();
+  out.writeln("## New Objects");
+
+  for (HeapComparisonNew object in compare.newObjects) {
+    count++;
+
+    out.writeln();
+    out.writeln("### Rank ${count} - ${object.objectId}");
+    out.writeln();
+    out.writeln("**Type**: `${object.type}`<br/>");
+    out.writeln("**Retained Size**: ${object.retainedSize} bytes<br/>");
+    out.writeln("**Shallow Size**: ${object.shallowSize} bytes<br/>");
+  }
+
   var outputFile = new File("heap_compare_report.md");
   await outputFile.writeAsString(out.toString());
 }

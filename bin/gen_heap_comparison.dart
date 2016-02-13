@@ -30,7 +30,8 @@ main(List<String> args) async {
   var compare = oldSnapshot.compare(newSnapshot, autoCalculate: false);
   compare.calculate(progress: true);
 
-  var output = [];
+  var increases = [];
+  var newObjects = [];
 
   print("== Generating Comparison. ==");
 
@@ -43,11 +44,25 @@ main(List<String> args) async {
       "increase": pair.right.retainedSize - pair.left.retainedSize
     };
 
-    output.add(map);
+    increases.add(map);
   }
 
+  for (SnapshotObject object in compare.findNewObjects()) {
+    var map = {
+      "objectId": object.objectId,
+      "type": object.type,
+      "retainedSize": object.retainedSize,
+      "shallowSize": object.shallowSize
+    };
+
+    newObjects.add(map);
+  }
+
+  newObjects.sort((a, b) => b["shallowSize"].compareTo(a["shallowSize"]));
+
   var out = {
-    "increases": output,
+    "increases": increases,
+    "new": newObjects,
     "timestamp": timestamp.toString(),
     "minutes": minutes,
     "oldSnapshotTimestamp": oldSnapshot.timestamp.toString(),
