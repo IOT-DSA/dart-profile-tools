@@ -37,34 +37,13 @@ main(List<String> args) async {
       if (c == null) {
         continue;
       }
-
-      ServiceObject object = await i.getObjectByAddress(v.address);
-
+      
       var map = {
         "type": c.name,
         "retainedSize": v.retainedSize,
         "shallowSize": v.shallowSize,
         "objectId": v.address
       };
-
-      if (object is Instance) {
-        if (object.isMap || object.isList) {
-          await object.reload();
-          map["length"] = object.length;
-        }
-
-        if (object.isMap) {
-          ObservableList list = object.associations;
-          map["keys"] = list.map((x) {
-            dynamic key = x["key"];
-            if (key is Instance) {
-              return key.valueAsString;
-            } else {
-              return null;
-            }
-          }).where((x) => x != null).toList();
-        }
-      }
 
       output.add(map);
       count++;

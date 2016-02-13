@@ -148,4 +148,3 @@ class TypeAnalysis {
     return uses.firstWhere((pair) => pair.left == type).right;
   }
 }
-
