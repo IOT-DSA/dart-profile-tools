@@ -22,3 +22,4 @@ doc/
 /tmp
 /profile.json
 *.ppk
+heap_compare_report.md

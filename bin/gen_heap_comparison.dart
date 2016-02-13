@@ -21,7 +21,15 @@ main(List<String> args) async {
 
   print("== Loading New Heap Snapshot. ==");
   var newSnapshot = await HeapSnapshot.load(fileNew);
-  var compare = oldSnapshot.compare(newSnapshot);
+
+  var minutes = oldSnapshot.timestamp.difference(newSnapshot.timestamp).abs().inSeconds / 60;
+  print("== ${minutes.toStringAsFixed(2)} minutes between snapshots ==");
+
+  var timestamp = new DateTime.now();
+
+  var compare = oldSnapshot.compare(newSnapshot, autoCalculate: false);
+  compare.calculate(progress: true);
+
   var output = [];
 
   print("== Generating Comparison. ==");
@@ -39,7 +47,11 @@ main(List<String> args) async {
   }
 
   var out = {
-    "increases": output
+    "increases": output,
+    "timestamp": timestamp.toString(),
+    "minutes": minutes,
+    "oldSnapshotTimestamp": oldSnapshot.timestamp.toString(),
+    "newSnapshotTimestamp": newSnapshot.timestamp.toString()
   };
 
   var packer = new StatefulPacker();

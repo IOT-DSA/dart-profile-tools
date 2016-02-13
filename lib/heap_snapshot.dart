@@ -92,8 +92,8 @@ class HeapSnapshot {
     );
   }
 
-  HeapComparison compare(HeapSnapshot other) {
-    return new HeapComparison(this, other);
+  HeapComparisonBuilder compare(HeapSnapshot other, {bool autoCalculate: true}) {
+    return new HeapComparisonBuilder(this, other, autoCalculate: autoCalculate);
   }
 
   SnapshotObject getObject(String objectId) {
@@ -101,14 +101,50 @@ class HeapSnapshot {
   }
 }
 
-class HeapComparison extends Pair<HeapSnapshot, HeapSnapshot> {
+class HeapComparison {
+  List<HeapComparisonIncrease> increases;
+
+  static Future<HeapComparison> load(File file) async {
+    Map<String, dynamic> input = unpack(await file.readAsBytes());
+    var comparison = new HeapComparison();
+    comparison.increases = (input["increases"] as List<Map>).map((Map m) {
+      var increase = new HeapComparisonIncrease();
+      increase
+        ..objectId = m["objectId"]
+        ..oldSize = m["oldSize"]
+        ..newSize = m["newSize"]
+        ..increase = m["increase"]
+        ..type = m["type"];
+
+      return increase;
+    }).toList();
+
+    comparison.increases.sort((a, b) {
+      return b.increase.compareTo(a.increase);
+    });
+
+    return comparison;
+  }
+}
+
+class HeapComparisonIncrease {
+  String type;
+  String objectId;
+  int oldSize;
+  int newSize;
+  int increase;
+}
+
+class HeapComparisonBuilder extends Pair<HeapSnapshot, HeapSnapshot> {
   List<Pair<SnapshotObject, SnapshotObject>> sharedObjects;
 
-  HeapComparison(HeapSnapshot left, HeapSnapshot right) : super(left, right) {
-    _calculate();
+  HeapComparisonBuilder(HeapSnapshot left, HeapSnapshot right, {bool autoCalculate: true}) : super(left, right) {
+    if (autoCalculate) {
+      calculate();
+    }
   }
 
-  void _calculate() {
+  void calculate({bool progress: false}) {
     sharedObjects = <Pair<SnapshotObject, SnapshotObject>>[];
 
     Iterable<SnapshotObject> objects = right.objects
@@ -118,6 +154,10 @@ class HeapComparison extends Pair<HeapSnapshot, HeapSnapshot> {
       SnapshotObject first = left.getObject(last.objectId);
 
       sharedObjects.add(new Pair<SnapshotObject, SnapshotObject>(first, last));
+
+      if (progress && (sharedObjects.length % 20) == 0) {
+        print("== Found ${sharedObjects.length} shared objects ==");
+      }
     }
   }
 
