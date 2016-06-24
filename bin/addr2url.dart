@@ -4,7 +4,7 @@ import "package:vm_service/service_io.dart";
 
 main(List<String> args) async {
   if (args.length != 3) {
-    print("Usage: gc <observatory_url> <isolate_id> <object>");
+    print("Usage: addr2url <observatory_url> <isolate_id> <object>");
     exit(1);
     return;
   }
