@@ -18,7 +18,7 @@ main(List<String> args) async {
   vm = await vm.load();
   Isolate i = await vm.getIsolate(args[1]);
 
-  var outpat = {};
+  var outputFirst = {};
 
   var profile = await i.invokeRpc("_getAllocationProfile", {"gc": "full"});
 
@@ -34,21 +34,21 @@ main(List<String> args) async {
       continue;
     }
 
-    outpat[cls.name] = {
+    outputFirst[cls.name] = {
       "new": cls.newSpace.current.instances,
       "old": cls.oldSpace.current.instances,
       "total": cls.newSpace.current.instances + cls.oldSpace.current.instances
     };
   }
 
-  var keys = outpat.keys.toList();
+  var keys = outputFirst.keys.toList();
   keys.sort((a, b) {
-    return outpat[b]["total"] - outpat[a]["total"];
+    return outputFirst[b]["total"] - outputFirst[a]["total"];
   });
 
   var output = {};
   for (var key in keys) {
-    output[key] = outpat[key];
+    output[key] = outputFirst[key];
   }
 
   var out = {
